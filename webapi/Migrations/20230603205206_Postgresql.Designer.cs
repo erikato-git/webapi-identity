@@ -11,8 +11,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace webapi.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20230420133202_postgres")]
-    partial class postgres
+    [Migration("20230603205206_Postgresql")]
+    partial class Postgresql
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

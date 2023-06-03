@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using webapi;
 using webapi.Controllers;
-using webapi_test.controllers;
 
 namespace webapi_test
 {
@@ -12,19 +11,35 @@ namespace webapi_test
     {
 
         [Fact]
-        public async Task DbTestOk()
+        public async Task DbTest()
         {
-            // Arrange
-            var controller = await new WeatherForecastControllerMoq().Instance();
+            // Create DB Context
+            var configuration = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json")
+                .AddEnvironmentVariables()
+                .Build();
 
-            // Act
-            var actionResult = await controller.DbTest();
-            var result = actionResult.Result as OkObjectResult;
+            var optionsBuilder = new DbContextOptionsBuilder<DataContext>();
+            optionsBuilder
+                .UseSqlServer(configuration["ConnectionStrings:DefaultConnection_tests"]);
 
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal(StatusCodes.Status200OK, result.StatusCode);
-            Assert.IsType<List<WeatherForecast>>(result.Value);
+            var context = new DataContext(optionsBuilder.Options);
+
+            // Delete all existing weatherforecasts in DB
+            await context.Database.EnsureDeletedAsync();
+            await context.Database.EnsureCreatedAsync();
+
+            // Create Controller
+            var repository = new WeatherForecastRepository(context);
+            var controller = new WeatherForecastController(repository);
+
+            // Add weatherforecast
+            await controller.AddWeatherForecast(new WeatherForecast { Id = new Guid(), Date = DateTime.UtcNow, TemperatureC = 16, Summary = "Solskin" });
+
+            var result = await controller.DbTest();
+            
+            Assert.NotNull(result.Result);
+
         }
 
 

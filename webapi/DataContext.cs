@@ -11,14 +11,14 @@ public class DataContext: DbContext
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        var WeatherForecastId1 = "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAA1";
+        //var WeatherForecastId1 = "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAA1";
 
-        modelBuilder.Entity<WeatherForecast>().HasData(
-            new WeatherForecast{
-                Id = Guid.Parse(WeatherForecastId1),
-                TemperatureC = 25,
-                Summary = "Test-object"
-            }
-        );
+        //modelBuilder.Entity<WeatherForecast>().HasData(
+        //    new WeatherForecast{
+        //        Id = Guid.Parse(WeatherForecastId1),
+        //        TemperatureC = 25,
+        //        Summary = "Test-object"
+        //    }
+        //);
     }
 }
