@@ -33,7 +33,7 @@ jobs:
         run: |
           docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=MyTestPassword" -p 1433:1433 -d mcr.microsoft.com/mssql/server:2022-latest
 
-      - name: Sleep for 5 seconds (wait for MSSQL to boot up) 😪
+      - name: Sleep for 5 seconds (wait for MSSQL to boot up)
         uses: jakejarvis/wait-action@master
         with:
           time: '5s'
@@ -44,10 +44,12 @@ jobs:
       - name: Build app
         run: dotnet build -c Release --no-restore
       
-      - name: Run automated tests
+      - name: Compile and Test from Build Script
+        shell: pwsh
+        run: .\build.ps1 ci-pr $
         env:
-          ConnectionStrings__DefaultConnection: "Server=localhost,1433;Initial Catalog=MyTestDb;User Id=sa;Password=MyTestPassword;"
-        run: dotnet test -c Release --no-build
+          ConnectionStrings__MyConnString: "Server=localhost,1433;Initial Catalog=MyTestDb;User Id=sa;Password=MyTestPassword;"
+        # run: dotnet test -c Release --no-build
 
       - name: Publish app
         run: dotnet publish -c Release -o ./out
