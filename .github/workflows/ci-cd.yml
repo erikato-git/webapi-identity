@@ -5,9 +5,21 @@ on:
     branches:
         - main
 
+env:
+  DOTNET_VERSION: '7.0.x'
+  AZURE_WEBAPP_NAME: webapi-identity
+
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
+    services:
+      mssql:
+        image: mcr.microsoft.com/mssql/server:2019-latest
+        env:
+          SA_PASSWORD: MyTestPassword
+          ACCEPT_EULA: 'Y'
+        ports:
+          - 1433:1433
     steps:
       - name: check-out
         uses: actions/checkout@v3
@@ -15,7 +27,16 @@ jobs:
       - name: Setup .NET 7
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '7.0.x'
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+        
+      - name: Start SQL Server
+        run: |
+          docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=MyTestPassword" -p 1433:1433 -d mcr.microsoft.com/mssql/server:2022-latest
+
+      - name: Sleep for 5 seconds (wait for MSSQL to boot up) 😪
+        uses: jakejarvis/wait-action@master
+        with:
+          time: '5s'
 
       - name: Restore dependencies
         run: dotnet restore
@@ -24,8 +45,19 @@ jobs:
         run: dotnet build -c Release --no-restore
       
       - name: Run automated tests
+        env:
+          ConnectionStrings__DefaultConnection: "Server=localhost,1433;Initial Catalog=MyTestDb;User Id=sa;Password=MyTestPassword;"
         run: dotnet test -c Release --no-build
-      
+
+      - name: Publish app
+        run: dotnet publish -c Release -o ./out
+
+      - name: Deploy to Azure Web Apps
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_SECRET }}
+          package: ./out
       
       
       
