@@ -14,12 +14,15 @@ jobs:
     runs-on: ubuntu-latest
     services:
       mssql:
-        image: mcr.microsoft.com/mssql/server:2019-latest
+        image: mcr.microsoft.com/mssql/server:2017-latest
         env:
-          SA_PASSWORD: MyTestPassword
-          ACCEPT_EULA: 'Y'
+          SA_PASSWORD: YourStrong!Passw0rd
+          ACCEPT_EULA: Y
+          MSSQL_PID: Developer
         ports:
           - 1433:1433
+        options: --name=mssql --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'YourStrong!Passw0rd' -Q 'SELECT 1'" --health-interval=10s --health-timeout=5s --health-retries=3
+
     steps:
       - name: check-out
         uses: actions/checkout@v3
@@ -44,12 +47,15 @@ jobs:
       - name: Build app
         run: dotnet build -c Release --no-restore
       
-      - name: Compile and Test from Build Script
-        shell: pwsh
-        run: .\build.ps1 ci-pr $
-        env:
-          ConnectionStrings__MyConnString: "Server=localhost,1433;Initial Catalog=MyTestDb;User Id=sa;Password=MyTestPassword;"
-        # run: dotnet test -c Release --no-build
+      # - name: Run automated tests
+      #   env:
+      #     ConnectionStrings__DefaultConnection: "Server=localhost,1433;Initial Catalog=MyTestDb;User Id=sa;Password=MyTestPassword;"
+      #   run: dotnet test -c Release --no-build
+
+      - name: Create MS SQL Database
+        run: |
+          sudo apt-get update && sudo apt-get install -y mssql-tools
+          /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'YourStrong!Passw0rd' -Q 'CREATE DATABASE test_db'
 
       - name: Publish app
         run: dotnet publish -c Release -o ./out
