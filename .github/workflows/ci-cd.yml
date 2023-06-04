@@ -22,7 +22,7 @@ jobs:
         ports:
           - 1433:1433
         options: --name=mssql --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'YourStrong!Passw0rd' -Q 'SELECT 1'" --health-interval=10s --health-timeout=5s --health-retries=3
-
+    
     steps:
       - name: check-out
         uses: actions/checkout@v3
@@ -32,16 +32,12 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
         
-      # - name: Start SQL Server
-      #   run: |
-      #     docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=MyTestPassword" -p 1433:1433 -d mcr.microsoft.com/mssql/server:2022-latest
-
       - name: Create MS SQL Database
         run: |
           sudo apt-get update && sudo apt-get install -y mssql-tools
           /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'YourStrong!Passw0rd' -Q 'CREATE DATABASE test_db'
 
-      - name: Sleep for 5 seconds (wait for MSSQL to boot up)
+      - name: Sleep for 5 seconds (wait for MSSQL to boot up) 😪
         uses: jakejarvis/wait-action@master
         with:
           time: '10s'
@@ -52,12 +48,9 @@ jobs:
       - name: Build app
         run: dotnet build -c Release --no-restore
       
-      # - name: Run automated tests
-      #   env:
-      #     ConnectionStrings__DefaultConnection: "Server=localhost,1433;Initial Catalog=MyTestDb;User Id=sa;Password=MyTestPassword;"
-      #   run: dotnet test -c Release --no-build
-
-      - name: Run Tests
+      - name: Run automated tests
+        env:
+          ConnectionStrings__DefaultConnection: "Server=localhost,1433;Initial Catalog=test_db;User Id=sa;Password=YourStrong!Passw0rd;"
         run: dotnet test -c Release --no-build
 
       - name: Publish app
