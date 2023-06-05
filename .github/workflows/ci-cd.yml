@@ -12,17 +12,6 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    services:
-      mssql:
-        image: mcr.microsoft.com/mssql/server:2017-latest
-        env:
-          SA_PASSWORD: YourStrong!Passw0rd
-          ACCEPT_EULA: Y
-          MSSQL_PID: Developer
-        ports:
-          - 1433:1433
-        options: --name=mssql --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'YourStrong!Passw0rd' -Q 'SELECT 1'" --health-interval=10s --health-timeout=5s --health-retries=3
-    
     steps:
       - name: check-out
         uses: actions/checkout@v3
@@ -31,16 +20,15 @@ jobs:
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
-        
-      - name: Create MS SQL Database
+      
+      - name: Start SQL Server
         run: |
-          sudo apt-get update && sudo apt-get install -y mssql-tools
-          /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'YourStrong!Passw0rd' -Q 'CREATE DATABASE test_db'
+          docker run -d -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=Pass~w0r8' -e 'MSSQL_PID=Express' -p 1433:1433 -d mcr.microsoft.com/mssql/server:latest
 
       - name: Sleep for 5 seconds (wait for MSSQL to boot up)
         uses: jakejarvis/wait-action@master
         with:
-          time: '10s'
+          time: '5s'
 
       - name: Restore dependencies
         run: dotnet restore
@@ -50,7 +38,7 @@ jobs:
       
       - name: Run automated tests
         env:
-          ConnectionStrings_DefaultConnection: Server=localhost,1433;Initial Catalog=test_db;User Id=sa;Password=YourStrong!Passw0rd
+          ConnectionStrings__DefaultConnection: Server=localhost;Database=webapi_identity_tests;Integrated Security=True;User=sa;Password=Pass~w0r8
         run: dotnet test -c Release --no-build
 
       - name: Publish app
