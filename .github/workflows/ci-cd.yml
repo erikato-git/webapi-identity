@@ -10,59 +10,17 @@ env:
   AZURE_WEBAPP_NAME: webapi-identity
 
 jobs:
-  build:
+  test-everywhere:
+    name: Test Action on all platforms
     runs-on: ubuntu-latest
-    services:
-      mssql:
-        image: mcr.microsoft.com/mssql/server:2017-latest
-        env:
-          SA_PASSWORD: YourStrong!Passw0rd
-          ACCEPT_EULA: Y
-          MSSQL_PID: Developer
-        ports:
-          - 1433:1433
-        options: --name=mssql --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'YourStrong!Passw0rd' -Q 'SELECT 1'" --health-interval=10s --health-timeout=5s --health-retries=3
-    
+
     steps:
-      - name: check-out
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-      - name: Setup .NET 7
-        uses: actions/setup-dotnet@v3
+      - name: Run the action
+        uses: potatoqualitee/mssqlsuite@v1.7
         with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
-        
-      - name: Create MS SQL Database
-        run: |
-          sudo apt-get update && sudo apt-get install -y mssql-tools
-          /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'YourStrong!Passw0rd' -Q 'CREATE DATABASE test_db'
+          install: sqlengine, sqlpackage
 
-      - name: Sleep for 5 seconds (wait for MSSQL to boot up) 😪
-        uses: jakejarvis/wait-action@master
-        with:
-          time: '10s'
-
-      - name: Restore dependencies
-        run: dotnet restore
-      
-      - name: Build app
-        run: dotnet build -c Release --no-restore
-      
-      - name: Run automated tests
-        env:
-          ConnectionStrings__DefaultConnection: "Server=localhost,1433;Initial Catalog=test_db;User Id=sa;Password=YourStrong!Passw0rd;"
-        run: dotnet test -c Release --no-build
-
-      - name: Publish app
-        run: dotnet publish -c Release -o ./out
-
-      - name: Deploy to Azure Web Apps
-        uses: azure/webapps-deploy@v2
-        with:
-          app-name: ${{ env.AZURE_WEBAPP_NAME }}
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_SECRET }}
-          package: ./out
-      
-      
-      
- 
+      - name: Run sqlclient
+        run: sqlcmd -S localhost -U sa -P dbatools.I0 -d tempdb -Q "SELECT @@version;"
