@@ -37,6 +37,8 @@ jobs:
         run: dotnet build -c Release --no-restore
       
       - name: Run automated tests
+        env:
+          ConnectionStrings__DefaultConnection: "Server=localhost,1433;Initial Catalog=test_db;User Id=sa;Password=dbatools.I0;"
         run: dotnet test -c Release --no-build
 
       - name: Publish app
