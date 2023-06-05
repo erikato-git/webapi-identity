@@ -36,10 +36,10 @@ jobs:
       - name: Build app
         run: dotnet build -c Release --no-restore
       
-      # - name: Run automated tests
-      #   env:
-      #     ConnectionStrings__DefaultConnection: Server=localhost;Database=webapi_identity_tests;User=sa;Password=Pass~w0r8;Encrypt=False
-      #   run: dotnet test -c Release --no-build
+      - name: Run automated tests
+        env:
+          ConnectionStrings__DefaultConnection: Server=localhost;Database=webapi_identity_tests;User=sa;Password=Pass~w0r8;Encrypt=False
+        run: dotnet test -c Release --no-build
 
       - name: Publish app
         run: dotnet publish -c Release -o ./out
