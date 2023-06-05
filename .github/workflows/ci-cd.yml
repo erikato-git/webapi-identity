@@ -1,4 +1,4 @@
-name: Continuous Integration (not deployment)
+name: Continuous Integration and Deployment
 
 on:
   push:
@@ -25,7 +25,7 @@ jobs:
       - name: Run sqlclient
         run: sqlcmd -S localhost -U sa -P dbatools.I0 -d tempdb -Q "SELECT @@version;"
 
-      - name: Sleep for 5 seconds (wait for MSSQL to boot up)
+      - name: Sleep for 10 seconds (wait for MSSQL to boot up)
         uses: jakejarvis/wait-action@master
         with:
           time: '10s'
