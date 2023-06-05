@@ -37,7 +37,7 @@ jobs:
           sudo apt-get update && sudo apt-get install -y mssql-tools
           /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'YourStrong!Passw0rd' -Q 'CREATE DATABASE test_db'
 
-      - name: Sleep for 5 seconds (wait for MSSQL to boot up) 😪
+      - name: Sleep for 5 seconds (wait for MSSQL to boot up)
         uses: jakejarvis/wait-action@master
         with:
           time: '10s'
