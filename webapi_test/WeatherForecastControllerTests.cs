@@ -21,7 +21,7 @@ namespace webapi_test
 
             var optionsBuilder = new DbContextOptionsBuilder<DataContext>();
             optionsBuilder
-                .UseSqlServer(configuration["ConnectionStrings:DefaultConnection_tests"]);
+                .UseSqlServer(configuration["ConnectionStrings:DefaultConnection"]);
 
             var context = new DataContext(optionsBuilder.Options);
 
